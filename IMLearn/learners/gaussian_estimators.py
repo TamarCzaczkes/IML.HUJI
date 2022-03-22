@@ -7,6 +7,7 @@ class UnivariateGaussian:
     """
     Class for univariate Gaussian Distribution Estimator
     """
+
     def __init__(self, biased_var: bool = False) -> UnivariateGaussian:
         """
         Estimator for univariate Gaussian mean and variance parameters
@@ -52,10 +53,14 @@ class UnivariateGaussian:
         estimator is either biased or unbiased). Then sets `self.fitted_` attribute to `True`
         """
 
-        # raise NotImplementedError()
+        self.mu_ = np.mean(X)
+        # temp_sum = np.sum((X - self.mu_) ** 2)
 
-        # self.mu_ =
-        # self.var_ =
+        if self.biased_:
+            self.var_ = np.var(X, ddof=0)
+            # self.var_ = temp_sum / np.size(X)
+        else:  # unbiased
+            self.var_ = np.var(X, ddof=1)
 
         self.fitted_ = True
         return self
@@ -80,7 +85,9 @@ class UnivariateGaussian:
         """
         if not self.fitted_:
             raise ValueError("Estimator must first be fitted before calling `pdf` function")
-        raise NotImplementedError()
+
+        return (1 / (np.sqrt(2 * np.pi * self.var_))) * \
+               (np.e ** ((-1 / (2 * self.var_)) * ((X - self.mu_) ** 2)))
 
     @staticmethod
     def log_likelihood(mu: float, sigma: float, X: np.ndarray) -> float:
@@ -101,13 +108,16 @@ class UnivariateGaussian:
         log_likelihood: float
             log-likelihood calculated
         """
-        raise NotImplementedError()
+
+        return (np.log(1 / ((2 * np.pi * sigma) ** (X.size / 2)))) - \
+               (1 / (2 * sigma)) * np.sum((X - mu) ** 2)
 
 
 class MultivariateGaussian:
     """
     Class for multivariate Gaussian Distribution Estimator
     """
+
     def __init__(self):
         """
         Initialize an instance of multivariate Gaussian estimator
@@ -147,7 +157,8 @@ class MultivariateGaussian:
         Sets `self.mu_`, `self.cov_` attributes according to calculated estimation.
         Then sets `self.fitted_` attribute to `True`
         """
-        raise NotImplementedError()
+        self.mu_ = np.mean(X, axis=0)
+        self.cov_ = np.cov(X, rowvar=False)
 
         self.fitted_ = True
         return self
@@ -172,7 +183,9 @@ class MultivariateGaussian:
         """
         if not self.fitted_:
             raise ValueError("Estimator must first be fitted before calling `pdf` function")
-        raise NotImplementedError()
+
+        return (1 / (np.sqrt(((2 * np.pi) ** X.size()) * det(self.cov_)))) * \
+               (np.e ** (-0.5 * np.transpose(X - self.mu_) * inv(self.cov_) * (X - self.mu_)))
 
     @staticmethod
     def log_likelihood(mu: np.ndarray, cov: np.ndarray, X: np.ndarray) -> float:
@@ -193,4 +206,10 @@ class MultivariateGaussian:
         log_likelihood: float
             log-likelihood calculated over all input data and under given parameters of Gaussian
         """
-        raise NotImplementedError()
+
+        m, d = X.shape
+
+        temp_sum = np.sum((X - mu) @ inv(cov) * (X - mu))
+
+        sign, log_det = slogdet(cov)
+        return -0.5 * ((m * ((d * np.log(2 * np.pi)) + (sign * log_det))) + temp_sum)
