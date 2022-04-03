@@ -4,6 +4,8 @@ from ...base import BaseEstimator
 import numpy as np
 from numpy.linalg import pinv
 
+from ...metrics import mean_square_error
+
 
 class LinearRegression(BaseEstimator):
     """
@@ -12,7 +14,7 @@ class LinearRegression(BaseEstimator):
     Solving Ordinary Least Squares optimization problem
     """
 
-    def __init__(self, include_intercept: bool = True) -> LinearRegression:
+    def __init__(self, include_intercept: bool = True) -> None:
         """
         Instantiate a linear regression estimator
 
@@ -49,7 +51,19 @@ class LinearRegression(BaseEstimator):
         -----
         Fits model with or without an intercept depending on value of `self.include_intercept_`
         """
-        raise NotImplementedError()
+
+        # sum_of_squares = lambda w: (y - X * w).T * (y - X * w)  # todo name
+        # self.coefs_ = np.unravel_index(sum_of_squares.argmin(), w)
+
+        # todo: צריך לחשב את איקס כרוס כמו שהראנו בתירגול ואז להכפיל בוקטור y
+
+        if self.include_intercept_:  # todo - add 1 to every x sample at the beginning?
+            X = np.c_[np.ones(X.shape[0]), X]
+
+        # x_semi_inverse = pinv(X.T)
+        x_semi_inverse = pinv(X)
+        # self.coefs_ = (x_semi_inverse @ y).T
+        self.coefs_ = x_semi_inverse @ y
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
@@ -65,7 +79,9 @@ class LinearRegression(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        raise NotImplementedError()
+
+        # return X @ self.coefs_  # todo ?
+        return X.T @ self.coefs_  # todo ?
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
@@ -84,4 +100,4 @@ class LinearRegression(BaseEstimator):
         loss : float
             Performance under MSE loss function
         """
-        raise NotImplementedError()
+        mean_square_error(y, X)

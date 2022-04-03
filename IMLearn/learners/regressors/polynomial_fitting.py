@@ -27,7 +27,7 @@ class PolynomialFitting(BaseEstimator):
 
         Parameters
         ----------
-        X : ndarray of shape (n_samples, n_features)
+        X : ndarray of shape (n_samples, n_features)  # n_features = 1
             Input data to fit an estimator for
 
         y : ndarray of shape (n_samples, )
@@ -83,4 +83,5 @@ class PolynomialFitting(BaseEstimator):
         transformed: ndarray of shape (n_samples, k+1)
             Vandermonde matrix of given samples up to degree k
         """
-        raise NotImplementedError()
+
+        return np.vander(X, increasing=True)  # todo like this?
