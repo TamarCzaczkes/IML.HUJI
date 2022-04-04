@@ -33,13 +33,13 @@ def split_train_test(X: pd.DataFrame, y: pd.Series, train_proportion: float = .7
         Responses of test samples
     """
 
-    shuffle_x = X.sample(frac=1)  # shuffle X
-    shuffle_y = y.reindex_like(shuffle_x)  # shuffle y accordingly
+    shuffle_x = X.sample(frac=1)
+    shuffle_y = y.reindex_like(shuffle_x)
     train_size = int(len(y) * train_proportion)
 
     train_X = shuffle_x[:train_size]
     train_y = shuffle_y[:train_size]
-    test_X = shuffle_y[train_size:]
+    test_X = shuffle_x[train_size:]
     test_y = shuffle_y[train_size:]
 
     return train_X, train_y, test_X, test_y

@@ -32,6 +32,7 @@ class LinearRegression(BaseEstimator):
             Coefficients vector fitted by linear regression. To be set in
             `LinearRegression.fit` function.
         """
+
         super().__init__()
         self.include_intercept_, self.coefs_ = include_intercept, None
 
@@ -52,17 +53,12 @@ class LinearRegression(BaseEstimator):
         Fits model with or without an intercept depending on value of `self.include_intercept_`
         """
 
-        # sum_of_squares = lambda w: (y - X * w).T * (y - X * w)  # todo name
-        # self.coefs_ = np.unravel_index(sum_of_squares.argmin(), w)
-
-        # todo: צריך לחשב את איקס כרוס כמו שהראנו בתירגול ואז להכפיל בוקטור y
-
-        if self.include_intercept_:  # todo - add 1 to every x sample at the beginning?
+        if self.include_intercept_:
             X = np.c_[np.ones(X.shape[0]), X]
 
         # x_semi_inverse = pinv(X.T)
-        x_semi_inverse = pinv(X)
         # self.coefs_ = (x_semi_inverse @ y).T
+        x_semi_inverse = pinv(X)
         self.coefs_ = x_semi_inverse @ y
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
@@ -80,8 +76,11 @@ class LinearRegression(BaseEstimator):
             Predicted responses of given samples
         """
 
-        # return X @ self.coefs_  # todo ?
-        return X.T @ self.coefs_  # todo ?
+        if self.include_intercept_:
+            X = np.c_[np.ones(X.shape[0]), X]
+
+        return X @ self.coefs_  # todo ?
+        # return X.T @ self.coefs_  # todo ?
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
@@ -100,4 +99,6 @@ class LinearRegression(BaseEstimator):
         loss : float
             Performance under MSE loss function
         """
-        mean_square_error(y, X)
+
+        prediction = self._predict(X)
+        return mean_square_error(y, prediction)
