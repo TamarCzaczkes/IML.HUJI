@@ -56,8 +56,6 @@ class LinearRegression(BaseEstimator):
         if self.include_intercept_:
             X = np.c_[np.ones(X.shape[0]), X]
 
-        # x_semi_inverse = pinv(X.T)
-        # self.coefs_ = (x_semi_inverse @ y).T
         x_semi_inverse = pinv(X)
         self.coefs_ = x_semi_inverse @ y
 
@@ -79,8 +77,7 @@ class LinearRegression(BaseEstimator):
         if self.include_intercept_:
             X = np.c_[np.ones(X.shape[0]), X]
 
-        return X @ self.coefs_  # todo ?
-        # return X.T @ self.coefs_  # todo ?
+        return X @ self.coefs_
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """

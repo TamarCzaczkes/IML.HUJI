@@ -28,22 +28,18 @@ def load_data(filename: str):
 
     # drop all samples with Nan values, and drop duplicated samples
     df = df.dropna().drop_duplicates()
-    print(df.shape)
     # remove samples non-negative prices
     df = df[df.price > 0]
-    print(df.shape)
 
     # create an indicator column - is the house renovated in since year 2000
     df["renovated_lately"] = np.where(df["yr_renovated"] >= 2000, 1, 0)
 
     # turn zipcodes to int values, then to one-hot vector
     df["zipcode"] = df["zipcode"].astype(int)
-    df = pd.get_dummies(df, prefix='zipcode', columns=['zipcode'])  # todo ?
-    print(df.shape)
+    df = pd.get_dummies(df, prefix='zipcode', columns=['zipcode'])
 
     prices = df.price
     df.drop(columns=["id", "price", "yr_renovated", "lat", "long", "date"], inplace=True)
-    print(df.shape)
 
     return df, prices
 
@@ -70,7 +66,7 @@ def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") ->
         std_X = X[feature].std()
         std_y = y.std()
         corr = cov / (std_X * std_y)
-        output = px.scatter(pd.DataFrame({'x': X[feature], 'y': y}), x="x", y="y", trendline="ols",
+        output = px.scatter(x=X[feature], y=y, trendline="ols",
                             title=f"Pearson Correlation Between {feature} (values) and <br>price (response): {corr}",
                             labels={"x": f"{feature}", "y": "Price (response values)"})
         output.write_image(f"{output_path}/pearson_correlation_{feature}.png")
@@ -79,11 +75,10 @@ def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") ->
 if __name__ == '__main__':
     np.random.seed(0)
     # Question 1 - Load and preprocessing of housing prices dataset
-    # load_data("../datasets/house_prices.csv")
     X, y = load_data("../datasets/house_prices.csv")
 
     # Question 2 - Feature evaluation with respect to response
-    # feature_evaluation(X, y, "./outputs")  # todo - uncomment
+    feature_evaluation(X, y, "./outputs")
 
     # Question 3 - Split samples into training- and testing sets.
     train_X, train_y, test_X, test_y = split_train_test(X, y)  # default is 75% train, 25% test
@@ -97,29 +92,28 @@ if __name__ == '__main__':
     # Then plot average loss as function of training size with error ribbon of size (mean-2*std, mean+2*std)
 
     percentage = np.linspace(10, 100, 91)
-    mean_lst, var_lst = np.array([]), np.array([])
+    mse_lst, var_lst = np.array([]), np.array([])
 
     for p in percentage:
         loss_lst = np.array([])
         for test in range(10):
-            partial_x = train_X.sample(frac=p / 100)
+            partial_x = train_X.sample(frac=(p / 100))
             partial_y = train_y.loc[partial_x.index]
             estimator = LinearRegression()
             estimator.fit(partial_x, partial_y)
             loss = estimator.loss(test_X, test_y)
             loss_lst = np.append(loss_lst, loss)
 
-        mean_lst = np.append(mean_lst, np.mean(loss_lst))
+        mse_lst = np.append(mse_lst, np.mean(loss_lst))
         var_lst = np.append(var_lst, np.std(loss_lst))
 
-    error_ribbon1 = mean_lst - (2 * var_lst)
-    error_ribbon2 = mean_lst + 2 * var_lst
+    error_ribbon1 = mse_lst - (2 * var_lst)
+    error_ribbon2 = mse_lst + (2 * var_lst)
     go.Figure(
-        ([go.Scatter(x=percentage, y=mean_lst, mode="markers+lines", name="Mean Prediction", line=dict(dash="dash"),
-                     marker=dict(color="green", opacity=.7), ),
+        ([go.Scatter(x=percentage, y=mse_lst, mode="lines", name="Average Loss"),
           go.Scatter(x=percentage, y=error_ribbon1, mode="lines", line=dict(color="lightgrey"), showlegend=False),
           go.Scatter(x=percentage, y=error_ribbon2, fill='tonexty', mode="lines",
                      line=dict(color="lightgrey"), showlegend=False)]),
         layout=go.Layout(title="Average Test Loss as a Function of Training Proportion",
-                         xaxis_title=dict({'text': "Training Proportion"}),
+                         xaxis_title=dict({'text': "Training Data Percentage"}),
                          yaxis_title=dict({'text': "Average Test Loss"}))).show()

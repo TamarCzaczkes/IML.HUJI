@@ -88,4 +88,4 @@ class PolynomialFitting(BaseEstimator):
             Vandermonde matrix of given samples up to degree k
         """
 
-        return np.vander(X, self.k_ + 1, increasing=True)  # todo - check increasing=True
+        return np.vander(X, self.k_ + 1, increasing=True)
