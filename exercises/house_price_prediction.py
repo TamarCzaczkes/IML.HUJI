@@ -78,7 +78,7 @@ if __name__ == '__main__':
     X, y = load_data("../datasets/house_prices.csv")
 
     # Question 2 - Feature evaluation with respect to response
-    feature_evaluation(X, y, "./outputs")
+    # feature_evaluation(X, y, "./outputs")
 
     # Question 3 - Split samples into training- and testing sets.
     train_X, train_y, test_X, test_y = split_train_test(X, y)  # default is 75% train, 25% test
@@ -100,8 +100,8 @@ if __name__ == '__main__':
             partial_x = train_X.sample(frac=(p / 100))
             partial_y = train_y.loc[partial_x.index]
             estimator = LinearRegression()
-            estimator.fit(partial_x, partial_y)
-            loss = estimator.loss(test_X, test_y)
+            estimator.fit(partial_x.to_numpy(), partial_y)
+            loss = estimator.loss(test_X.to_numpy(), test_y.to_numpy())
             loss_lst = np.append(loss_lst, loss)
 
         mse_lst = np.append(mse_lst, np.mean(loss_lst))

@@ -63,8 +63,8 @@ if __name__ == '__main__':
 
     for k in k_range:
         model = PolynomialFitting(k)
-        model.fit(train_X, train_y)
-        loss = np.round(model.loss(train_X, train_y), 2)
+        model.fit(train_X.to_numpy(), train_y.to_numpy())
+        loss = np.round(model.loss(train_X.to_numpy(), train_y.to_numpy()), 2)
         loss_lst = np.append(loss_lst, loss)
         if loss < lowest_loss:
             lowest_loss, opt_k = loss, k
