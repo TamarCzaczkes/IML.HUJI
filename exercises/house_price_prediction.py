@@ -78,7 +78,7 @@ if __name__ == '__main__':
     X, y = load_data("../datasets/house_prices.csv")
 
     # Question 2 - Feature evaluation with respect to response
-    # feature_evaluation(X, y, "./outputs")
+    feature_evaluation(X, y, "./outputs")
 
     # Question 3 - Split samples into training- and testing sets.
     train_X, train_y, test_X, test_y = split_train_test(X, y)  # default is 75% train, 25% test
