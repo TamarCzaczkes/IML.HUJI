@@ -28,8 +28,9 @@ class Perceptron(BaseEstimator):
         `Perceptron.fit` function.
 
     callback_: Callable[[Perceptron, np.ndarray, int], None]
-            A callable to be called after each update of the model while fitting to given data
-            Callable function should receive as input a Perceptron instance, current sample and current response
+            A callable to be called after each update of the model while fitting to given data.
+            Callable function should receive as input a Perceptron instance,
+            current sample and current response.
     """
     def __init__(self,
                  include_intercept: bool = True,
@@ -47,8 +48,9 @@ class Perceptron(BaseEstimator):
             Maximum number of passes over training data
 
         callback: Callable[[Perceptron, np.ndarray, int], None]
-            A callable to be called after each update of the model while fitting to given data
-            Callable function should receive as input a Perceptron instance, current sample and current response
+            A callable to be called after each update of the model while fitting to given data.
+            Callable function should receive as input a Perceptron instance,
+            current sample and current response.
         """
         super().__init__()
         self.include_intercept_ = include_intercept
@@ -58,7 +60,8 @@ class Perceptron(BaseEstimator):
 
     def _fit(self, X: np.ndarray, y: np.ndarray) -> NoReturn:
         """
-        Fit a halfspace to to given samples. Iterate over given data as long as there exists a sample misclassified
+        Fit a halfspace to given samples.
+        Iterate over given data as long as there exists a sample misclassified
         or that did not reach `self.max_iter_`
 
         Parameters
@@ -73,7 +76,41 @@ class Perceptron(BaseEstimator):
         -----
         Fits model with or without an intercept depending on value of `self.fit_intercept_`
         """
-        raise NotImplementedError()
+
+        if self.include_intercept_:  # Add intercept to X
+            X = np.c_[np.ones(X.shape[0]), X]
+
+        self.coefs_ = np.zeros(X.shape[1])
+        for _ in range(self.max_iter_):
+            for i in range(X.shape[0]):
+                if self.predict(X[i]) != y[i]:
+                    self.coefs_ += y[i] * X[i]
+                    self.callback_(self, X[i], y[i])
+
+
+        # num_of_samples, num_of_features = X.shape
+        # if self.include_intercept_:  # Add intercept to X
+        #     X = np.c_[np.ones(num_of_samples), X]
+        #     num_of_features += 1
+        #
+        # self.coefs_ = np.zeros(num_of_features)
+        # for _ in range(self.max_iter_):
+        #     for i in range(num_of_samples):
+        #         if self.predict(X[i]) != y[i]:
+        #             self.coefs_ += y[i] * X[i]
+        #             self.callback_(self, X[i], y[i])
+
+        # todo ??
+        # if self.include_intercept_:  # Add intercept to X
+        #     X = np.c_[np.ones(num_of_samples), X]
+        #     num_of_features += 1
+        #
+        # self.coefs_ = np.zeros(num_of_features)
+        # for _ in range(self.max_iter_):
+        #     for i in range(num_of_samples):
+        #         if self._predict(X[i]) != y[i]:
+        #             self.coefs_ += y[i] * X[i]
+        #             self.callback_(self, X[i], y[i])
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
@@ -89,7 +126,13 @@ class Perceptron(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        raise NotImplementedError()
+
+        # todo - check if X has intercept?
+        if self.include_intercept_:  # Add intercept to X
+            X = np.c_[np.ones(X.shape[0]), X]
+
+        return np.sign(X @ self.coefs_)
+
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
@@ -109,4 +152,7 @@ class Perceptron(BaseEstimator):
             Performance under missclassification loss function
         """
         from ...metrics import misclassification_error
-        raise NotImplementedError()
+
+        # todo ????
+        # todo - predict or _predict?
+        return misclassification_error(self.predict(X), y)

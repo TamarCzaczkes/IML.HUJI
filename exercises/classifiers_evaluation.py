@@ -31,21 +31,29 @@ def load_dataset(filename: str) -> Tuple[np.ndarray, np.ndarray]:
 
 def run_perceptron():
     """
-    Fit and plot fit progression of the Perceptron algorithm over both the linearly separable and inseparable datasets
+    Fit and plot fit progression of the Perceptron algorithm over both the
+    linearly separable and inseparable datasets.
 
     Create a line plot that shows the perceptron algorithm's training loss values (y-axis)
     as a function of the training iterations (x-axis).
     """
-    for n, f in [("Linearly Separable", "linearly_separable.npy"), ("Linearly Inseparable", "linearly_inseparable.npy")]:
+    for n, f in [("Linearly Separable", "../datasets/linearly_separable.npy"),
+                 ("Linearly Inseparable", "../datasets/linearly_inseparable.npy")]:
         # Load dataset
-        raise NotImplementedError()
+        X, y = load_dataset(f)
 
         # Fit Perceptron and record loss in each fit iteration
         losses = []
-        raise NotImplementedError()
+        perceptron = Perceptron()
+        for i in range(1, perceptron.max_iter_ + 1):
+            perceptron.fit(X, y)
+            losses.append(perceptron.loss(X, y))
 
         # Plot figure of loss as function of fitting iteration
-        raise NotImplementedError()
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=list(range(1, perceptron.max_iter_ + 1)), y=losses, mode="lines", name="Loss"))
+        fig.update_layout(title=f"Perceptron: {n}", xaxis_title="Iteration", yaxis_title="Loss")
+        fig.show()
 
 
 def get_ellipse(mu: np.ndarray, cov: np.ndarray):
