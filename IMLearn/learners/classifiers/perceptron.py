@@ -32,6 +32,7 @@ class Perceptron(BaseEstimator):
             Callable function should receive as input a Perceptron instance,
             current sample and current response.
     """
+
     def __init__(self,
                  include_intercept: bool = True,
                  max_iter: int = 1000,
@@ -77,40 +78,20 @@ class Perceptron(BaseEstimator):
         Fits model with or without an intercept depending on value of `self.fit_intercept_`
         """
 
-        if self.include_intercept_:  # Add intercept to X
+        # Add intercept to X if needed
+        if self.include_intercept_:
             X = np.c_[np.ones(X.shape[0]), X]
 
         self.coefs_ = np.zeros(X.shape[1])
         for _ in range(self.max_iter_):
             for i in range(X.shape[0]):
-                if self.predict(X[i]) != y[i]:
+                if (X[i] @ self.coefs_) * y[i] <= 0:
                     self.coefs_ += y[i] * X[i]
+                    self.fitted_ = True
                     self.callback_(self, X[i], y[i])
-
-
-        # num_of_samples, num_of_features = X.shape
-        # if self.include_intercept_:  # Add intercept to X
-        #     X = np.c_[np.ones(num_of_samples), X]
-        #     num_of_features += 1
-        #
-        # self.coefs_ = np.zeros(num_of_features)
-        # for _ in range(self.max_iter_):
-        #     for i in range(num_of_samples):
-        #         if self.predict(X[i]) != y[i]:
-        #             self.coefs_ += y[i] * X[i]
-        #             self.callback_(self, X[i], y[i])
-
-        # todo ??
-        # if self.include_intercept_:  # Add intercept to X
-        #     X = np.c_[np.ones(num_of_samples), X]
-        #     num_of_features += 1
-        #
-        # self.coefs_ = np.zeros(num_of_features)
-        # for _ in range(self.max_iter_):
-        #     for i in range(num_of_samples):
-        #         if self._predict(X[i]) != y[i]:
-        #             self.coefs_ += y[i] * X[i]
-        #             self.callback_(self, X[i], y[i])
+                    break
+            else:
+                break
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
@@ -127,12 +108,11 @@ class Perceptron(BaseEstimator):
             Predicted responses of given samples
         """
 
-        # todo - check if X has intercept?
-        if self.include_intercept_:  # Add intercept to X
+        # Add intercept to X if needed
+        if self.include_intercept_:
             X = np.c_[np.ones(X.shape[0]), X]
 
         return np.sign(X @ self.coefs_)
-
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
@@ -153,6 +133,4 @@ class Perceptron(BaseEstimator):
         """
         from ...metrics import misclassification_error
 
-        # todo ????
-        # todo - predict or _predict?
         return misclassification_error(self.predict(X), y)

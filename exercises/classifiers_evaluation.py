@@ -1,3 +1,5 @@
+import numpy as np
+
 from IMLearn.learners.classifiers import Perceptron, LDA, GaussianNaiveBayes
 from typing import Tuple
 from utils import *
@@ -44,14 +46,12 @@ def run_perceptron():
 
         # Fit Perceptron and record loss in each fit iteration
         losses = []
-        perceptron = Perceptron()
-        for i in range(1, perceptron.max_iter_ + 1):
-            perceptron.fit(X, y)
-            losses.append(perceptron.loss(X, y))
+        callback = lambda fit, x_i, y_i: losses.append(fit.loss(X, y))
+        perceptron = Perceptron(callback=callback)
+        perceptron.fit(X, y)
 
         # Plot figure of loss as function of fitting iteration
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(x=list(range(1, perceptron.max_iter_ + 1)), y=losses, mode="lines", name="Loss"))
+        fig = go.Figure(go.Line(x=list(range(1, perceptron.max_iter_ + 1)), y=losses, name="Loss"))
         fig.update_layout(title=f"Perceptron: {n}", xaxis_title="Iteration", yaxis_title="Loss")
         fig.show()
 
@@ -85,30 +85,73 @@ def compare_gaussian_classifiers():
     """
     Fit both Gaussian Naive Bayes and LDA classifiers on both gaussians1 and gaussians2 datasets
     """
-    for f in ["gaussian1.npy", "gaussian2.npy"]:
+    for f in ["../datasets/gaussian1.npy", "../datasets/gaussian2.npy"]:
         # Load dataset
-        raise NotImplementedError()
+        X, y = load_dataset(f)
 
         # Fit models and predict over training set
-        raise NotImplementedError()
+        gnb = GaussianNaiveBayes()
+        gnb.fit(X, y)
+        gnb_pred = gnb.predict(X)
 
-        # Plot a figure with two suplots, showing the Gaussian Naive Bayes predictions on the left and LDA predictions
+        lda = LDA()
+        lda.fit(X, y)
+        lda_pred = lda.predict(X)
+
+        # Plot a figure with two subplots, showing the Gaussian Naive Bayes predictions on the left and LDA predictions
         # on the right. Plot title should specify dataset used and subplot titles should specify algorithm and accuracy
         # Create subplots
         from IMLearn.metrics import accuracy
-        raise NotImplementedError()
+
+        # make two subplots
+        fig = make_subplots(rows=1, cols=2, subplot_titles=("Gaussian Naive Bayes", "LDA"))
 
         # Add traces for data-points setting symbols and colors
-        raise NotImplementedError()
+        fig.add_trace(go.Scatter(x=X[:, 0], y=X[:, 1], mode="markers",
+                                 marker_color=gnb_pred, marker_symbol=class_symbols[y], marker_size=9), 1, 1)
+        fig.add_trace(go.Scatter(x=X[:, 0], y=X[:, 1], mode="markers",
+                                 marker_color=lda_pred, marker_symbol=class_symbols[y], marker_size=9), 1, 2)
 
         # Add `X` dots specifying fitted Gaussians' means
-        raise NotImplementedError()
+        fig.add_trace(go.Scatter(x=np.array(gnb.mu_[:, 0]), y=np.array(gnb.mu_[:, 1]),
+                                 mode="markers", marker_color="black", marker_symbol="x", marker_size=17), 1, 1)
+        fig.add_trace(go.Scatter(x=np.array(lda.mu_[:, 0]), y=np.array(lda.mu_[:, 1]),
+                                 mode="markers", marker_color="black", marker_symbol="x", marker_size=17, ), 1, 2, )
 
         # Add ellipses depicting the covariances of the fitted Gaussians
-        raise NotImplementedError()
+        for i in range(np.unique(y).size):
+            fig.add_trace(get_ellipse(gnb.mu_[i], np.diag(gnb.vars_[i])), 1, 1)
+            fig.add_trace(get_ellipse(lda.mu_[i], lda.cov_), 1, 2)
+
+        # Add titles
+        fig.layout.update(title=f"Gaussian Naive Bayes and LDA Estimators, for {f}", title_x=0.5)
+        fig.update_xaxes(title_text="x", row=1, col=1)
+        fig.update_yaxes(title_text="y", row=1, col=1)
+        fig.update_xaxes(title_text="x", row=1, col=2)
+        fig.update_yaxes(title_text="y", row=1, col=2)
+
+        # Add accuracy
+        fig.layout.annotations[0].update(text=f"Gaussian Naive Bayes, accuracy: {accuracy(gnb.predict(X), y)}")
+        fig.layout.annotations[1].update(text=f"LDA, accuracy: {accuracy(lda.predict(X), y)}")
+
+        fig.show()
+
+
+def quiz():
+    # X = np.array([[0, 0], [1, 0], [2, 1], [3, 1], [4, 1], [5, 1], [6, 2], [7, 2]])
+    # y = np.array([0, 0, 1, 1, 1, 1, 2, 2])
+    X = np.array([[1, 1], [1, 2], [2, 3], [2, 4], [3, 3], [3, 4]])
+    y = np.array([0, 0, 1, 1, 1, 1])
+
+    gnb = GaussianNaiveBayes()
+    gnb.fit(X, y)
+    # print("mu_:", gnb.mu_)
+    # print("pi_:", gnb.pi_)
+    print("vars_:", gnb.vars_)
 
 
 if __name__ == '__main__':
     np.random.seed(0)
-    run_perceptron()
-    compare_gaussian_classifiers()
+    # run_perceptron()
+    # compare_gaussian_classifiers()
+    quiz()
