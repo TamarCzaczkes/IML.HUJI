@@ -154,4 +154,4 @@ if __name__ == '__main__':
     np.random.seed(0)
     # run_perceptron()
     # compare_gaussian_classifiers()
-    quiz()
+    # quiz()
