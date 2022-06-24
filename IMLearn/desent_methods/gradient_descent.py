@@ -39,6 +39,7 @@ class GradientDescent:
         Callable function receives as input any argument relevant for the current GD iteration. Arguments
         are specified in the `GradientDescent.fit` function
     """
+
     def __init__(self,
                  learning_rate: BaseLR = FixedLR(1e-3),
                  tol: float = 1e-5,
@@ -68,6 +69,7 @@ class GradientDescent:
             Callable function receives as input any argument relevant for the current GD iteration. Arguments
             are specified in the `GradientDescent.fit` function
         """
+
         self.learning_rate_ = learning_rate
         if out_type not in OUTPUT_VECTOR_TYPE:
             raise ValueError("output_type not supported")
@@ -119,4 +121,34 @@ class GradientDescent:
                 Euclidean norm of w^(t)-w^(t-1)
 
         """
-        raise NotImplementedError()
+
+        iter = 0
+        step_size = np.inf
+        sum_weights = f.weights.copy()
+        best_weights = f.weights.copy()
+        best_val = f.compute_output(X=X, y=y)
+
+        while iter < self.max_iter_ and step_size > self.tol_:
+            eta = self.learning_rate_.lr_step(t=iter)
+            grad = f.compute_jacobian(X=X, y=y)
+            step = -eta * grad
+            f.weights += step
+            step_size = np.linalg.norm(step)
+            val = f.compute_output(X=X, y=y)
+
+            if best_val > val:
+                best_val = val
+                best_weights = f.weights
+
+            iter += 1
+            sum_weights += f.weights
+
+            self.callback_(model=self, weights=f.weights, val=val,
+                           grad=grad, t=iter, eta=eta, delta=step_size)
+
+        if self.out_type_ == "best":
+            f.weights = best_weights
+        elif self.out_type_ == "average":
+            f.weights = sum_weights / (iter + 1)
+
+        return f.weights
